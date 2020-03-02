@@ -87,7 +87,7 @@ def format_datetime(value, format='medium'):
       format="EEEE MMMM, d, y 'at' h:mma"
   elif format == 'medium':
       format="EE MM, dd, y h:mma"
-  return babel.dates.format_datetime(date, format)
+  return babel.dates.format_datetime(date, format, locale = 'en')
 
 app.jinja_env.filters['datetime'] = format_datetime
 
@@ -120,8 +120,7 @@ def venues():
           venue_data.append({
             'id': venue.id,
             'name': venue.name,
-            'num_upcoming_shows': len(list(filter(lambda x: x.start_time > datetime.today(),
-                                                  venue.shows)))
+            'num_upcoming_shows': len(db.session.query(Show).filter(Show.venue_id == 1).filter(Show.start_time > datetime.now()).all())
           })
       # Appending all necessary data to 'data' object returned to user
       data.append({
@@ -180,7 +179,7 @@ def show_venue(venue_id):
         'artist_id': show.artist_id,
         'artist_name': show.artist.name,
         'artist_image_link': show.artist.image_link,
-        'start_time': show.start_time
+        'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S')
       })
 
   # Appending upcoming show information
@@ -189,7 +188,7 @@ def show_venue(venue_id):
         'artist_id': show.artist_id,
         'artist_name': show.artist.name,
         'artist_image_link': show.artist.image_link,
-        'start_time': show.start_time
+        'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S')
       })
 
   # Creating data object to return all appropriate information
@@ -335,7 +334,7 @@ def show_artist(artist_id):
         'venue_id': show.venue_id,
         'venue_name': show.venue.name,
         'artist_image_link': show.venue.image_link,
-        'start_time': show.start_time
+        'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S')
       })
 
   # Querying the artist's upcoming shows
@@ -350,7 +349,7 @@ def show_artist(artist_id):
         'venue_id': show.venue_id,
         'venue_name': show.venue.name,
         'artist_image_link': show.venue.image_link,
-        'start_time': show.start_time
+        'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S')
       })
 
   # Packaging all data about the artist to return to the user
@@ -568,10 +567,10 @@ def shows():
         'venue_name': show.venue.name,
         'artist_id': show.artist_id,
         'artist_name': show.artist.name,
-        'start_time': show.start_time
+        'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S')
       })
 
-  return render_template('pages/shows.html', shows=data)
+  return render_template('pages/shows.html', shows = data)
 
 @app.route('/shows/create')
 def create_shows():
