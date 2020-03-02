@@ -166,21 +166,51 @@ def show_venue(venue_id):
   # Querying the venue with the provided ID
   venue = Venue.query.get(venue_id)
 
-  # Using the 'Show_Artists' method to collect information about past and upcoming shows
-  past_shows = list(filter(lambda x: x.start_time < datetime.today(), venue.shows))
-  upcoming_shows = list(filter(lambda x: x.start_time >= datetime.today(), venue.shows))
+  # Querying all past and upcoming shows with the venue_id
+  all_past_shows = db.session.query(Show).join(Artist).filter(Show.venue_id == venue_id).filter(Show.start_time > datetime.now()).all()
+  all_upcoming_shows = db.session.query(Show).join(Artist).filter(Show.venue_id == venue_id).filter(Show.start_time <= datetime.now()).all()
 
-  past_shows = list(map(lambda x: x.show_artist(), past_shows))
-  upcoming_shows = list(map(lambda x: x.show_artist(), upcoming_shows))
+  # Creating empty containers to append respective past / upcming show info
+  upcoming_shows = []
+  past_shows = []
 
-  # Turning data returned about the venue into a dictionary, which will be returned back to user on page
-  data = venue.to_dict()
+  # Appending past show information
+  for show in all_past_shows:
+      past_shows.append({
+        'artist_id': show.artist_id,
+        'artist_name': show.artist.name,
+        'artist_image_link': show.artist.image_link,
+        'start_time': show.start_time
+      })
 
-  # Appending additional information about shows to the data dictionary
-  data['past_shows'] = past_shows
-  data['upcoming_shows'] = upcoming_shows
-  data['past_shows_count'] = len(past_shows)
-  data['upcoming_shows_count'] = len(upcoming_shows)
+  # Appending upcoming show information
+  for show in all_upcoming_shows:
+      upcoming_shows.append({
+        'artist_id': show.artist_id,
+        'artist_name': show.artist.name,
+        'artist_image_link': show.artist.image_link,
+        'start_time': show.start_time
+      })
+
+  # Creating data object to return all appropriate information
+  data = {
+    'id': venue.id,
+    'name': venue.name,
+    'genres': venue.genres,
+    'address': venue.address,
+    'city': venue.city,
+    'state': venue.state,
+    'phone': venue.phone,
+    'website': venue.website,
+    'facebook_link': venue.facebook_link,
+    'seeking_talent': venue.seeking_talent,
+    'seeking_description': venue.seeking_description,
+    'image_link': venue.image_link,
+    'past_shows': past_shows,
+    'upcoming_shows': upcoming_shows,
+    'past_shows_count': len(past_shows),
+    'upcoming_shows_count': len(upcoming_shows)
+  }
 
   return render_template('pages/show_venue.html', venue = data)
 
@@ -474,7 +504,7 @@ def edit_venue_submission(venue_id):
 @app.route('/artists/create', methods=['GET'])
 def create_artist_form():
   form = ArtistForm()
-  return render_template('forms/new_artist.html', form=form)
+  return render_template('forms/new_artist.html', form = form)
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
