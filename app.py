@@ -152,7 +152,7 @@ def search_venues():
   # Establishing the formal response by appending how many results were found with the results themselves
   response = {
     'count': len(search_result),
-    'data': data1
+    'data': data
   }
 
   return render_template('pages/search_venues.html', results = response, search_term = request.form.get('search_term', ''))
@@ -309,7 +309,7 @@ def search_artists():
       })
 
   # Formalizing response with search result data object and number of results
-  respose = {
+  response = {
     'count': len(search_result),
     'data': data
   }
